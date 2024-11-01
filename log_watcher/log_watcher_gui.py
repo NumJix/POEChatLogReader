@@ -21,6 +21,10 @@ class LogWatcherGUI:
         self.root = root
         self.root.title('POE Chat Log Watcher')
 
+        # Define the path to the JSON configuration file
+        self.config_file_path = 'log.txt'
+        self.last_log_file_path = self.load_last_log_file()
+
         # Create a frame to hold the log file selection UI
         self.file_selection_frame = ttk.Frame(self.root)
         self.file_selection_frame.pack(pady=10, padx=10, fill='x')
@@ -74,10 +78,28 @@ class LogWatcherGUI:
         self.help_button = ttk.Button(self.root, text='Help',
                                       command=self.show_help)
         self.help_button.pack(side='left', padx=(10, 0))
+        # Populate Treeviews if there's a cached file
+        if self.last_log_file_path:
+            self.selected_file_label.config(text=self.last_log_file_path)
+            self.log_watcher = LogWatcher(self.last_log_file_path, self.chat_group)
+            self.populate_treeviews()
 
     def show_help(self):
         '''Displays a Help message box.'''
         messagebox.showinfo('Help', help_text)
+
+    def load_last_log_file(self):
+        '''Loads the last opened log file path from the config file.'''
+        if os.path.exists(self.config_file_path):
+            with open(self.config_file_path, 'r') as config_file:
+                config = config_file.read()
+                return config
+        return None
+
+    def save_last_log_file(self, log_file_path):
+        '''Saves the last opened log file path to the config file.'''
+        with open(self.config_file_path, 'w') as config_file:
+            config_file.write(log_file_path)
 
     def select_log_file(self):
         '''Opens a file picker dialog to select the log file.'''
@@ -94,6 +116,8 @@ class LogWatcherGUI:
                 return
 
             self.selected_file_label.config(text=log_file_path)
+            self.last_log_file_path = log_file_path
+            self.save_last_log_file(log_file_path)
             self.log_watcher = LogWatcher(log_file_path, self.chat_group)
             self.populate_treeviews()
             self.start_watcher()
@@ -247,6 +271,9 @@ class LogWatcherGUI:
     def populate_treeviews(self):
         '''Populates the Treeviews with existing
         logs when the application starts.'''
+        if self.last_log_file_path:
+            self.selected_file_label.config(text=self.last_log_file_path)
+            self.log_watcher = LogWatcher(self.last_log_file_path, self.chat_group)
         for category in self.treeviews:
             logs: list[POELogs] = getattr(self.chat_group, category, [])
             treeview = self.treeviews[category]
