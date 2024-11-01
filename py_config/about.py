@@ -3,5 +3,4 @@ about_text = (
     'It categorizes logs into different tabs and '
     'allows you to copy log entries easily. \n'
     'Developed using Python and Tkinter.'
-    'Ver 1.0.0'
     )
