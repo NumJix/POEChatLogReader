@@ -1,0 +1,41 @@
+name: Create Release
+
+on:
+  release:
+    types: [created]
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.12.5'
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install pyinstaller
+
+      - name: Create .env file
+        run: |
+          echo "EXTRACT_REGEX=${{ secrets.EXTRACT_REGEX }}" >> .env
+
+      - name: Build the application
+        run: |
+          echo "Building application with tag: ${{ github.event.release.tag }}"
+          pyinstaller --onefile --windowed --name "POEChatLogWatcher.exe" app.py
+
+      - name: Create GitHub Release
+        id: create_release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ github.event.release.tag }}
+          files: ./dist/POEChatLogWatcher.exe 
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
