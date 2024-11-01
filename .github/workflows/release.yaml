@@ -29,7 +29,7 @@ jobs:
       - name: Build the application
         run: |
           echo "Building application with tag: ${{ github.event.release.tag }}"
-          pyinstaller --onefile --windowed --name "POEChatLogWatcher.exe" app.py
+          pyinstaller --onefile --windowed --name "POEChatLogWatcher.exe" --add-data ".env;." app.py
 
       - name: Create GitHub Release
         id: create_release

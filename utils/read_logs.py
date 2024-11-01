@@ -1,5 +1,6 @@
-import re
 import os
+import re
+import sys
 from datetime import datetime as dt
 
 from dotenv import load_dotenv
@@ -7,7 +8,13 @@ from dotenv import load_dotenv
 from models.poe_logs import POELogs
 
 
-load_dotenv()
+def get_env_file_path():
+    if getattr(sys, 'frozen', False):
+        return os.path.join(sys._MEIPASS, '.env')
+    return '.env'
+
+
+load_dotenv(get_env_file_path())
 
 
 def extract_details_from_logs(log_line):
