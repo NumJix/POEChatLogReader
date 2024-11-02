@@ -251,14 +251,16 @@ class LogWatcherGUI:
 
     def refresh_logs(self):
         '''Manually refreshes the logs in the UI.'''
-        for category in self.treeviews:
+        if self.log_watcher:
+            self.log_watcher.update_logs_from_file()
+        # Now reload the UI with the latest logs
+        for category, treeview in self.treeviews.items():
             logs: list[POELogs] = getattr(self.chat_group, category, [])
-            treeview = self.treeviews[category]
 
             # Clear existing items in the Treeview
             treeview.delete(*treeview.get_children())
 
-            # Insert new logs into the Treeview
+            # Insert new/updated logs into the Treeview
             for log in logs:
                 treeview.insert('', 'end', values=(
                     log.date_time.strftime('%Y/%m/%d %H:%M:%S'),
@@ -266,7 +268,7 @@ class LogWatcherGUI:
                     log.guild,
                     log.username,
                     log.message))
-            treeview.yview_moveto(1.0)
+            treeview.yview_moveto(1.0) 
 
     def populate_treeviews(self):
         '''Populates the Treeviews with existing
