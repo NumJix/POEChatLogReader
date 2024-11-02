@@ -10,18 +10,25 @@ class LogWatcher(FileSystemEventHandler):
         self.last_position = 0
         self.read_existing_logs()  # Initial read of existing log content
 
+    def update_logs_from_file(self):
+        '''Manually reads new lines added to the log file to update the chat group.'''
+        self.read_new_lines()
+
     def read_existing_logs(self):
         '''Reads the entire log file up to the end to
         capture any existing log entries.'''
-        with open(self.log_file_path, 'r', encoding='utf-8') as f:
-            existing_lines = f.readlines()
-            self.last_position = f.tell()  # Set position - end of the file
+        try:
+            with open(self.log_file_path, 'r', encoding='utf-8') as f:
+                existing_lines = f.readlines()
+                self.last_position = f.tell()  # Set position - end of the file
 
-            for line in existing_lines:
-                extract = extract_details_from_logs(line)
-                if extract:
-                    log = resolve_log_to_object(extract)
-                    self.chat_group.add_log(log)
+                for line in existing_lines:
+                    extract = extract_details_from_logs(line)
+                    if extract:
+                        log = resolve_log_to_object(extract)
+                        self.chat_group.add_log(log)
+        except (IOError, FileNotFoundError) as e:
+            print(f'Error reading existing logs: {e}')
 
     def on_modified(self, event):
         # Only respond to changes in the log file
@@ -30,14 +37,17 @@ class LogWatcher(FileSystemEventHandler):
 
     def read_new_lines(self):
         '''Reads only new lines added to the file since last read.'''
-        with open(self.log_file_path, 'r') as f:
-            f.seek(self.last_position)
-            new_lines = f.readlines()
-            self.last_position = f.tell()
+        try:
+            with open(self.log_file_path, 'r', encoding='utf-8') as f:
+                f.seek(self.last_position)
+                new_lines = f.readlines()
+                self.last_position = f.tell()
 
-            # Parse and categorize new lines
-            for line in new_lines:
-                extract = extract_details_from_logs(line)
-                if extract:
-                    log = resolve_log_to_object(extract)
-                    self.chat_group.add_log(log)
+                # Parse and categorize new lines
+                for line in new_lines:
+                    extract = extract_details_from_logs(line)
+                    if extract:
+                        log = resolve_log_to_object(extract)
+                        self.chat_group.add_log(log)
+        except (IOError, FileNotFoundError) as e:
+            print(f'Error reading new lines: {e}')
